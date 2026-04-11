@@ -14,7 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      roadmap_nodes: {
+        Row: {
+          category: string
+          connections: string[]
+          created_at: string
+          description: string
+          difficulty: string
+          id: string
+          position_x: number
+          position_y: number
+          resources: Json
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          category?: string
+          connections?: string[]
+          created_at?: string
+          description?: string
+          difficulty?: string
+          id: string
+          position_x?: number
+          position_y?: number
+          resources?: Json
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          category?: string
+          connections?: string[]
+          created_at?: string
+          description?: string
+          difficulty?: string
+          id?: string
+          position_x?: number
+          position_y?: number
+          resources?: Json
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      user_progress: {
+        Row: {
+          browser_id: string
+          completed_at: string
+          id: string
+          node_id: string
+        }
+        Insert: {
+          browser_id: string
+          completed_at?: string
+          id?: string
+          node_id: string
+        }
+        Update: {
+          browser_id?: string
+          completed_at?: string
+          id?: string
+          node_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

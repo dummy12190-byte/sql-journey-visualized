@@ -113,27 +113,38 @@ export function useRoadmapStore() {
   );
 
   const addTopic = useCallback(async (topic: Partial<RoadmapNode> & { id: string; title: string }) => {
-    await supabase.from("roadmap_nodes").insert({
+    const row = {
       id: topic.id,
       title: topic.title,
       description: topic.description || "",
       category: topic.category || "",
       difficulty: topic.difficulty || "beginner",
-      resources: (topic.resources as unknown as Record<string, unknown>[]) || [],
+      resources: (topic.resources || []) as unknown as import("@/integrations/supabase/types").Json,
       position_x: topic.position_x || 0,
       position_y: topic.position_y || 0,
       connections: topic.connections || [],
       video_url: topic.video_url || "",
-    });
+    };
+    await supabase.from("roadmap_nodes").insert(row);
   }, []);
 
   const updateTopic = useCallback(async (id: string, updates: Partial<RoadmapNode>) => {
-    const dbUpdates: Record<string, unknown> = {};
+    const dbUpdates: {
+      title?: string;
+      description?: string;
+      category?: string;
+      difficulty?: string;
+      resources?: import("@/integrations/supabase/types").Json;
+      position_x?: number;
+      position_y?: number;
+      connections?: string[];
+      video_url?: string;
+    } = {};
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
     if (updates.category !== undefined) dbUpdates.category = updates.category;
     if (updates.difficulty !== undefined) dbUpdates.difficulty = updates.difficulty;
-    if (updates.resources !== undefined) dbUpdates.resources = updates.resources;
+    if (updates.resources !== undefined) dbUpdates.resources = updates.resources as unknown as import("@/integrations/supabase/types").Json;
     if (updates.position_x !== undefined) dbUpdates.position_x = updates.position_x;
     if (updates.position_y !== undefined) dbUpdates.position_y = updates.position_y;
     if (updates.connections !== undefined) dbUpdates.connections = updates.connections;

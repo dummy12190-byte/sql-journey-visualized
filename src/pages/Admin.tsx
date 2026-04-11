@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useRoadmapStore } from "@/hooks/useRoadmapStore";
-import { RoadmapTopic, Resource, Difficulty } from "@/data/roadmapData";
+import { useRoadmapStore, type RoadmapNode } from "@/hooks/useRoadmapStore";
+import { Resource, Difficulty } from "@/data/roadmapData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,40 +10,68 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, Pencil, Trash2, RotateCcw, X, Database } from "lucide-react";
 
-const emptyTopic: Omit<RoadmapTopic, "id"> = {
+interface TopicForm {
+  title: string;
+  description: string;
+  category: string;
+  difficulty: Difficulty;
+  resources: Resource[];
+  position_x: number;
+  position_y: number;
+  connections: string[];
+  video_url: string;
+}
+
+const emptyForm: TopicForm = {
   title: "",
   description: "",
   category: "",
   difficulty: "beginner",
   resources: [],
+  position_x: 400,
+  position_y: 0,
+  connections: [],
+  video_url: "",
 };
 
 export default function Admin() {
   const store = useRoadmapStore();
-  const [editingTopic, setEditingTopic] = useState<RoadmapTopic | null>(null);
+  const [editingTopic, setEditingTopic] = useState<RoadmapNode | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [form, setForm] = useState(emptyTopic);
+  const [form, setForm] = useState<TopicForm>(emptyForm);
   const [newResource, setNewResource] = useState<Resource>({ title: "", url: "", type: "article" });
 
   const openCreate = () => {
-    setForm(emptyTopic);
+    // Auto-calculate Y position below last node
+    const maxY = store.topics.reduce((max, t) => Math.max(max, t.position_y), 0);
+    setForm({ ...emptyForm, position_y: maxY + 140 });
     setEditingTopic(null);
     setIsCreating(true);
   };
 
-  const openEdit = (topic: RoadmapTopic) => {
-    setForm({ title: topic.title, description: topic.description, category: topic.category, difficulty: topic.difficulty, resources: [...topic.resources] });
+  const openEdit = (topic: RoadmapNode) => {
+    setForm({
+      title: topic.title,
+      description: topic.description,
+      category: topic.category,
+      difficulty: topic.difficulty,
+      resources: [...topic.resources],
+      position_x: topic.position_x,
+      position_y: topic.position_y,
+      connections: [...topic.connections],
+      video_url: topic.video_url,
+    });
     setEditingTopic(topic);
     setIsCreating(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title.trim()) return;
     if (editingTopic) {
-      store.updateTopic(editingTopic.id, form);
+      await store.updateTopic(editingTopic.id, form);
     } else {
       const id = form.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      store.addTopic({ ...form, id });
+      await store.addTopic({ ...form, id });
     }
     setIsCreating(false);
     setEditingTopic(null);
@@ -86,41 +114,47 @@ export default function Admin() {
       </div>
 
       <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-3">
-        {store.topics.map((topic) => (
-          <div
-            key={topic.id}
-            className="flex items-center justify-between rounded-lg border border-border bg-card p-4 animate-fade-in"
-          >
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-medium text-foreground">{topic.title}</h3>
-                <Badge variant="outline" className="text-xs border-border text-muted-foreground">
-                  {topic.category}
-                </Badge>
-                <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
-                    topic.difficulty === "beginner"
-                      ? "bg-primary/15 text-primary border-primary/30"
-                      : topic.difficulty === "intermediate"
-                      ? "bg-accent/15 text-accent border-accent/30"
-                      : "bg-destructive/15 text-destructive border-destructive/30"
-                  }`}
-                >
-                  {topic.difficulty}
-                </span>
+        {store.loading ? (
+          <p className="text-muted-foreground text-center py-12">Loading topics...</p>
+        ) : store.topics.length === 0 ? (
+          <p className="text-muted-foreground text-center py-12">No topics yet. Add one!</p>
+        ) : (
+          store.topics.map((topic) => (
+            <div
+              key={topic.id}
+              className="flex items-center justify-between rounded-lg border border-border bg-card p-4 animate-fade-in"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-medium text-foreground">{topic.title}</h3>
+                  <Badge variant="outline" className="text-xs border-border text-muted-foreground">
+                    {topic.category}
+                  </Badge>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+                      topic.difficulty === "beginner"
+                        ? "bg-primary/15 text-primary border-primary/30"
+                        : topic.difficulty === "intermediate"
+                        ? "bg-accent/15 text-accent border-accent/30"
+                        : "bg-destructive/15 text-destructive border-destructive/30"
+                    }`}
+                  >
+                    {topic.difficulty}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1 truncate">{topic.description}</p>
               </div>
-              <p className="text-sm text-muted-foreground mt-1 truncate">{topic.description}</p>
+              <div className="flex gap-1 ml-3 shrink-0">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(topic)}>
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => store.deleteTopic(topic.id)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-1 ml-3 shrink-0">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(topic)}>
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => store.deleteTopic(topic.id)}>
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <Dialog open={isCreating} onOpenChange={() => setIsCreating(false)}>
@@ -158,6 +192,22 @@ export default function Admin() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium text-foreground">Position X</label>
+                <Input type="number" value={form.position_x} onChange={(e) => setForm({ ...form, position_x: Number(e.target.value) })} className="mt-1 bg-secondary border-border" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground">Position Y</label>
+                <Input type="number" value={form.position_y} onChange={(e) => setForm({ ...form, position_y: Number(e.target.value) })} className="mt-1 bg-secondary border-border" />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground">Video URL (YouTube / OneDrive embed)</label>
+              <Input value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} placeholder="https://www.youtube.com/embed/..." className="mt-1 bg-secondary border-border" />
             </div>
 
             <div>

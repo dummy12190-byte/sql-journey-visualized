@@ -13,6 +13,14 @@ export default function Index() {
     return new Set(store.filteredTopics.map((t) => t.id));
   }, [store.filteredTopics]);
 
+  if (store.loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground animate-pulse">Loading roadmap...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen flex-col bg-background">
       <RoadmapHeader

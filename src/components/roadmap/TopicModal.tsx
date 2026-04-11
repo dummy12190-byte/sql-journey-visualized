@@ -1,4 +1,4 @@
-import { RoadmapTopic } from "@/data/roadmapData";
+import { type RoadmapNode } from "@/hooks/useRoadmapStore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ const difficultyVariant: Record<string, string> = {
 };
 
 interface TopicModalProps {
-  topic: RoadmapTopic | null;
+  topic: RoadmapNode | null;
   open: boolean;
   onClose: () => void;
   completed: boolean;
@@ -61,6 +61,20 @@ export default function TopicModal({ topic, open, onClose, completed, onToggleCo
             </>
           )}
         </Button>
+
+        {topic.video_url && (
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-foreground mb-2">Video</h4>
+            <div className="aspect-video rounded-md overflow-hidden border border-border">
+              <iframe
+                src={topic.video_url}
+                className="w-full h-full"
+                allowFullScreen
+                title={topic.title}
+              />
+            </div>
+          </div>
+        )}
 
         {topic.resources.length > 0 && (
           <div className="mt-4 space-y-2">

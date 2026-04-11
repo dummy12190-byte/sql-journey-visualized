@@ -12,43 +12,51 @@ import "@xyflow/react/dist/style.css";
 
 import RoadmapNode from "./RoadmapNode";
 import TopicModal from "./TopicModal";
-import { RoadmapTopic, nodePositions, edgeDefinitions } from "@/data/roadmapData";
+import { type RoadmapNode as RoadmapNodeType } from "@/hooks/useRoadmapStore";
 
 const nodeTypes = { roadmap: RoadmapNode };
 
 interface RoadmapFlowProps {
-  topics: RoadmapTopic[];
+  topics: RoadmapNodeType[];
   completedIds: Set<string>;
   toggleCompleted: (id: string) => void;
   highlightedIds?: Set<string>;
 }
 
 export default function RoadmapFlow({ topics, completedIds, toggleCompleted, highlightedIds }: RoadmapFlowProps) {
-  const [selectedTopic, setSelectedTopic] = useState<RoadmapTopic | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<RoadmapNodeType | null>(null);
 
   const topicMap = useMemo(() => new Map(topics.map((t) => [t.id, t])), [topics]);
 
-  const nodes: Node[] = useMemo(() => {
-    return nodePositions
-      .filter((pos) => topicMap.has(pos.id))
-      .map((pos) => {
-        const topic = topicMap.get(pos.id)!;
-        const dimmed = highlightedIds && highlightedIds.size > 0 && !highlightedIds.has(pos.id);
-        return {
-          id: pos.id,
-          type: "roadmap",
-          position: { x: pos.x, y: pos.y },
-          data: {
-            label: topic.title,
-            difficulty: topic.difficulty,
-            completed: completedIds.has(pos.id),
-            onClick: () => setSelectedTopic(topic),
-            onToggleComplete: () => toggleCompleted(pos.id),
-          },
-          style: dimmed ? { opacity: 0.25, transition: "opacity 0.2s" } : { transition: "opacity 0.2s" },
-        };
+  // Build edges from connections stored in each node
+  const edgeDefinitions = useMemo(() => {
+    const edges: { source: string; target: string }[] = [];
+    topics.forEach((t) => {
+      (t.connections || []).forEach((targetId) => {
+        edges.push({ source: t.id, target: targetId });
       });
-  }, [topicMap, completedIds, toggleCompleted, highlightedIds]);
+    });
+    return edges;
+  }, [topics]);
+
+  const nodes: Node[] = useMemo(() => {
+    return topics.map((topic) => {
+      const dimmed = highlightedIds && highlightedIds.size > 0 && !highlightedIds.has(topic.id);
+      return {
+        id: topic.id,
+        type: "roadmap",
+        position: { x: topic.position_x, y: topic.position_y },
+        data: {
+          label: topic.title,
+          difficulty: topic.difficulty,
+          completed: completedIds.has(topic.id),
+          onClick: () => setSelectedTopic(topic),
+          onToggleComplete: () => toggleCompleted(topic.id),
+        },
+        style: dimmed ? { opacity: 0.25, transition: "opacity 0.2s" } : { transition: "opacity 0.2s" },
+      };
+    });
+  }, [topics, completedIds, toggleCompleted, highlightedIds]);
 
   const edges: Edge[] = useMemo(() => {
     return edgeDefinitions
@@ -66,7 +74,7 @@ export default function RoadmapFlow({ topics, completedIds, toggleCompleted, hig
           strokeWidth: 2,
         },
       }));
-  }, [topicMap, completedIds]);
+  }, [edgeDefinitions, topicMap, completedIds]);
 
   const handleClose = useCallback(() => setSelectedTopic(null), []);
 

@@ -108,7 +108,6 @@
 /* ======================== */
 .node-shimmer {
   position: relative;
-  overflow: hidden;
 }
 .node-shimmer::after {
   content: '';
@@ -120,6 +119,8 @@
   background: linear-gradient(90deg, transparent, hsl(210 20% 92% / 0.06), transparent);
   transition: none;
   pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
 }
 .node-shimmer:hover::after {
   animation: shimmer-sweep 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;

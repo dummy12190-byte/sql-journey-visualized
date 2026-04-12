@@ -67,7 +67,7 @@ const RoadmapNode = memo(({ data }: RoadmapNodeProps) => {
   return (
     <div
       className={`stagger-fade group relative cursor-pointer rounded-lg border px-5 py-3 min-w-[160px] max-w-[200px] text-center node-shimmer
-        transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+        transition-all duration-300
         hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-muted-foreground/60
         ${completed
           ? "node-completed-glow border-primary/50 bg-primary/10"

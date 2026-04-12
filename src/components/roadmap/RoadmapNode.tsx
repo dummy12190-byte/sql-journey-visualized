@@ -66,7 +66,7 @@ const RoadmapNode = memo(({ data }: RoadmapNodeProps) => {
 
   return (
     <div
-      className={`stagger-fade group relative cursor-pointer rounded-lg border px-5 py-3 min-w-[160px] max-w-[200px] text-center node-shimmer
+      className={`group relative cursor-pointer rounded-lg border px-5 py-3 min-w-[160px] max-w-[200px] text-center node-shimmer
         transition-all duration-300
         hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-muted-foreground/60
         ${completed
@@ -75,7 +75,6 @@ const RoadmapNode = memo(({ data }: RoadmapNodeProps) => {
         }
         ${isNext ? "ring-2 ring-warning/60 ring-offset-2 ring-offset-background" : ""}
       `}
-      style={{ animationDelay: `${staggerIndex * 80}ms` }}
       onClick={onClick}
     >
       <Handle type="target" position={Position.Top} className="!bg-muted-foreground !w-2 !h-2 !border-0" />

@@ -13,11 +13,13 @@ export default defineConfig(({ mode }) => ({
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  optimizeDeps: {
+    include: ["canvas-confetti", "react", "react-dom", "@tanstack/react-query"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    optimizeDeps: { include: ["canvas-confetti"] },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
 }));

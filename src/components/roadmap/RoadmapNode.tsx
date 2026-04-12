@@ -66,12 +66,12 @@ const RoadmapNode = memo(({ data }: RoadmapNodeProps) => {
 
   return (
     <div
-      className={`group relative cursor-pointer rounded-lg border px-5 py-3 min-w-[160px] max-w-[200px] text-center node-shimmer
+      className={`group relative cursor-pointer rounded-lg border px-5 py-3 min-w-[160px] max-w-[200px] text-center
         transition-all duration-300
         hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 hover:border-muted-foreground/60
         ${completed
-          ? "node-completed-glow border-primary/50 bg-primary/10"
-          : "node-frosted hover:bg-card/90"
+          ? "border-primary/50 bg-primary/10 shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
+          : "bg-card border-border hover:bg-card/90"
         }
         ${isNext ? "ring-2 ring-warning/60 ring-offset-2 ring-offset-background" : ""}
       `}

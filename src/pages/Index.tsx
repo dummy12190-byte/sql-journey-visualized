@@ -16,7 +16,10 @@ export default function Index() {
   if (store.loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground animate-pulse">Loading roadmap...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <p className="text-muted-foreground text-sm">Loading roadmap...</p>
+        </div>
       </div>
     );
   }
@@ -33,7 +36,7 @@ export default function Index() {
         totalCount={store.topics.length}
       />
 
-      <div className="relative flex-1">
+      <div className="relative flex-1 roadmap-bg">
         <RoadmapFlow
           topics={store.topics}
           completedIds={store.completedIds}
@@ -42,7 +45,7 @@ export default function Index() {
         />
 
         <Link to="/admin" className="absolute bottom-4 right-4 z-10">
-          <Button variant="outline" size="sm" className="gap-2 bg-card/90 backdrop-blur-sm border-border">
+          <Button variant="outline" size="sm" className="gap-2 bg-card/90 backdrop-blur-sm border-border hover:border-primary/50 transition-colors">
             <Settings className="h-4 w-4" />
             Admin
           </Button>

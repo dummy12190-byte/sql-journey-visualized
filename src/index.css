@@ -141,9 +141,9 @@
 
 /* Frosted glass for incomplete */
 .node-frosted {
-  backdrop-filter: blur(8px);
-  background: hsl(225 14% 12% / 0.7) !important;
-  border-color: hsl(225 12% 28% / 0.4) !important;
+  backdrop-filter: blur(4px);
+  background: hsl(225 14% 14% / 0.85);
+  border-color: hsl(225 12% 28% / 0.5);
 }
 
 /* Check bounce */

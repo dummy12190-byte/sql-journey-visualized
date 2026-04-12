@@ -94,8 +94,8 @@ export default function RoadmapFlow({ topics, completedIds, toggleCompleted, hig
           staggerIndex,
         },
         style: dimmed
-          ? { opacity: 0.15, transform: "scale(0.95)", transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)" }
-          : { opacity: 1, transform: "scale(1)", transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)" },
+          ? { opacity: 0.15, transition: "opacity 0.4s cubic-bezier(0.4,0,0.2,1)" }
+          : { opacity: 1, transition: "opacity 0.4s cubic-bezier(0.4,0,0.2,1)" },
       };
     });
   }, [topics, completedIds, handleToggle, highlightedIds, nextNodeId, sortedTopicIds]);

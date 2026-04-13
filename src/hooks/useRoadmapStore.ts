@@ -125,7 +125,8 @@ export function useRoadmapStore() {
       connections: topic.connections || [],
       video_url: topic.video_url || "",
     };
-    await supabase.from("roadmap_nodes").insert(row);
+    const { error } = await supabase.from("roadmap_nodes").insert(row);
+    if (error) throw error;
   }, []);
 
   const updateTopic = useCallback(async (id: string, updates: Partial<RoadmapNode>) => {
@@ -149,11 +150,13 @@ export function useRoadmapStore() {
     if (updates.position_y !== undefined) dbUpdates.position_y = updates.position_y;
     if (updates.connections !== undefined) dbUpdates.connections = updates.connections;
     if (updates.video_url !== undefined) dbUpdates.video_url = updates.video_url;
-    await supabase.from("roadmap_nodes").update(dbUpdates).eq("id", id);
+    const { error } = await supabase.from("roadmap_nodes").update(dbUpdates).eq("id", id);
+    if (error) throw error;
   }, []);
 
   const deleteTopic = useCallback(async (id: string) => {
-    await supabase.from("roadmap_nodes").delete().eq("id", id);
+    const { error } = await supabase.from("roadmap_nodes").delete().eq("id", id);
+    if (error) throw error;
   }, []);
 
   const resetToDefaults = useCallback(async () => {

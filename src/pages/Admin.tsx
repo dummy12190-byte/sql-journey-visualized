@@ -24,19 +24,33 @@ export default function Admin() {
   };
 
   const handleSave = async (form: any, editingId: string | null) => {
-    if (editingId) {
-      await store.updateTopic(editingId, form);
-      toast.success("Topic updated");
-    } else {
-      const id = form.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      await store.addTopic({ ...form, id });
-      toast.success("Topic added");
+    try {
+      if (editingId) {
+        await store.updateTopic(editingId, form);
+        toast.success("Topic updated");
+      } else {
+        const baseId = form.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+        const existingIds = new Set(store.topics.map((t) => t.id));
+        let id = baseId;
+        let counter = 1;
+        while (existingIds.has(id)) {
+          id = `${baseId}-${counter++}`;
+        }
+        await store.addTopic({ ...form, id });
+        toast.success("Topic added");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save topic");
     }
   };
 
   const handleDelete = async (id: string) => {
-    await store.deleteTopic(id);
-    toast.success("Topic deleted");
+    try {
+      await store.deleteTopic(id);
+      toast.success("Topic deleted");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to delete topic");
+    }
   };
 
   // Keyboard shortcut: N to open drawer, Escape to close

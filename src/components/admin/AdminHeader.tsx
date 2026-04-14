@@ -8,6 +8,7 @@ interface AdminHeaderProps {
   topics: RoadmapNode[];
   onAddTopic: () => void;
   onReset: () => void;
+  roadmapName?: string;
 }
 
 export default function AdminHeader({ topics, onAddTopic, onReset }: AdminHeaderProps) {

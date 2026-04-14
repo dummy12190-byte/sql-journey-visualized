@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, RotateCcw, Database } from "lucide-react";
+import { Plus, RotateCcw, Database } from "lucide-react";
 import type { RoadmapNode } from "@/hooks/useRoadmapStore";
 
 interface AdminHeaderProps {
   topics: RoadmapNode[];
   onAddTopic: () => void;
   onReset: () => void;
+  roadmapName?: string;
 }
 
-export default function AdminHeader({ topics, onAddTopic, onReset }: AdminHeaderProps) {
+export default function AdminHeader({ topics, onAddTopic, onReset, roadmapName }: AdminHeaderProps) {
   const [spinning, setSpinning] = useState(false);
 
   const beginnerCount = topics.filter((t) => t.difficulty === "beginner").length;
@@ -28,15 +28,10 @@ export default function AdminHeader({ topics, onAddTopic, onReset }: AdminHeader
       <div className="max-w-6xl mx-auto px-4 py-3 md:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200">
-                <ArrowLeft className="h-4 w-4" /> Back
-              </Button>
-            </Link>
             <div className="flex items-center gap-2.5">
               <div className="w-1 h-6 rounded-full bg-gradient-to-b from-primary to-primary/40" />
               <Database className="h-5 w-5 text-primary" />
-              <h1 className="text-lg font-display text-foreground">Admin Panel</h1>
+              <h1 className="text-lg font-display text-foreground">{roadmapName ? `${roadmapName} Topics` : "Admin Panel"}</h1>
             </div>
           </div>
           <div className="flex gap-2">

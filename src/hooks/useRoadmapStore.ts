@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Difficulty, Resource, RoadmapTopic } from "@/data/roadmapData";
+import { Difficulty, Resource } from "@/data/roadmapData";
+import type { Json } from "@/integrations/supabase/types";
 
 const BROWSER_ID_KEY = "sql-roadmap-browser-id";
 
@@ -24,9 +25,12 @@ interface DbNode {
   position_y: number;
   connections: string[];
   video_url: string | null;
+  roadmap_id: string;
+  estimated_time: number;
+  sort_order: number;
 }
 
-function dbToTopic(row: DbNode): RoadmapTopic & { position_x: number; position_y: number; connections: string[]; video_url: string } {
+function dbToTopic(row: DbNode) {
   return {
     id: row.id,
     title: row.title,
@@ -38,12 +42,15 @@ function dbToTopic(row: DbNode): RoadmapTopic & { position_x: number; position_y
     position_y: row.position_y,
     connections: row.connections || [],
     video_url: row.video_url || "",
+    roadmap_id: row.roadmap_id,
+    estimated_time: row.estimated_time || 30,
+    sort_order: row.sort_order || 0,
   };
 }
 
 export type RoadmapNode = ReturnType<typeof dbToTopic>;
 
-export function useRoadmapStore() {
+export function useRoadmapStore(roadmapId?: string) {
   const [topics, setTopics] = useState<RoadmapNode[]>([]);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,23 +58,31 @@ export function useRoadmapStore() {
   const [loading, setLoading] = useState(true);
   const browserId = useMemo(() => getBrowserId(), []);
 
-  // Real-time subscription to roadmap_nodes
   useEffect(() => {
+    if (!roadmapId) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     const fetchInitial = async () => {
-      const { data } = await supabase.from("roadmap_nodes").select("*");
+      const { data } = await supabase
+        .from("roadmap_nodes")
+        .select("*")
+        .eq("roadmap_id", roadmapId)
+        .order("sort_order");
       if (data) setTopics(data.map((d) => dbToTopic(d as unknown as DbNode)));
       setLoading(false);
     };
     fetchInitial();
 
     const channel = supabase
-      .channel("roadmap-realtime")
+      .channel(`roadmap-${roadmapId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "roadmap_nodes" }, (payload) => {
-        if (payload.eventType === "INSERT") {
-          const node = dbToTopic(payload.new as unknown as DbNode);
+        const node = (payload.eventType === "DELETE" ? null : dbToTopic(payload.new as unknown as DbNode));
+        if (payload.eventType === "INSERT" && node && node.roadmap_id === roadmapId) {
           setTopics((prev) => [...prev.filter((t) => t.id !== node.id), node]);
-        } else if (payload.eventType === "UPDATE") {
-          const node = dbToTopic(payload.new as unknown as DbNode);
+        } else if (payload.eventType === "UPDATE" && node && node.roadmap_id === roadmapId) {
           setTopics((prev) => prev.map((t) => (t.id === node.id ? node : t)));
         } else if (payload.eventType === "DELETE") {
           const old = payload.old as { id?: string };
@@ -76,25 +91,25 @@ export function useRoadmapStore() {
       })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    return () => { supabase.removeChannel(channel); };
+  }, [roadmapId]);
 
-  // Load progress
   useEffect(() => {
+    if (!roadmapId) return;
     const fetchProgress = async () => {
       const { data } = await supabase
         .from("user_progress")
         .select("node_id")
-        .eq("browser_id", browserId);
+        .eq("browser_id", browserId)
+        .eq("roadmap_id", roadmapId);
       if (data) setCompletedIds(new Set(data.map((d) => d.node_id)));
     };
     fetchProgress();
-  }, [browserId]);
+  }, [browserId, roadmapId]);
 
   const toggleCompleted = useCallback(
     async (id: string) => {
+      if (!roadmapId) return;
       setCompletedIds((prev) => {
         const next = new Set(prev);
         if (next.has(id)) next.delete(id);
@@ -106,50 +121,51 @@ export function useRoadmapStore() {
       if (isCompleted) {
         await supabase.from("user_progress").delete().eq("node_id", id).eq("browser_id", browserId);
       } else {
-        await supabase.from("user_progress").insert({ node_id: id, browser_id: browserId });
+        await supabase.from("user_progress").insert({ node_id: id, browser_id: browserId, roadmap_id: roadmapId });
       }
     },
-    [completedIds, browserId]
+    [completedIds, browserId, roadmapId]
   );
 
   const addTopic = useCallback(async (topic: Partial<RoadmapNode> & { id: string; title: string }) => {
+    if (!roadmapId) throw new Error("No roadmap selected");
     const row = {
       id: topic.id,
       title: topic.title,
       description: topic.description || "",
       category: topic.category || "",
       difficulty: topic.difficulty || "beginner",
-      resources: (topic.resources || []) as unknown as import("@/integrations/supabase/types").Json,
+      resources: (topic.resources || []) as unknown as Json,
       position_x: topic.position_x || 0,
       position_y: topic.position_y || 0,
       connections: topic.connections || [],
       video_url: topic.video_url || "",
+      roadmap_id: roadmapId,
+      estimated_time: topic.estimated_time || 30,
+      sort_order: topic.sort_order || 0,
     };
     const { error } = await supabase.from("roadmap_nodes").insert(row);
     if (error) throw error;
-  }, []);
+  }, [roadmapId]);
 
   const updateTopic = useCallback(async (id: string, updates: Partial<RoadmapNode>) => {
     const dbUpdates: {
-      title?: string;
-      description?: string;
-      category?: string;
-      difficulty?: string;
-      resources?: import("@/integrations/supabase/types").Json;
-      position_x?: number;
-      position_y?: number;
-      connections?: string[];
-      video_url?: string;
+      title?: string; description?: string; category?: string; difficulty?: string;
+      position_x?: number; position_y?: number; connections?: string[];
+      video_url?: string; estimated_time?: number; sort_order?: number;
+      resources?: Json;
     } = {};
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
     if (updates.category !== undefined) dbUpdates.category = updates.category;
     if (updates.difficulty !== undefined) dbUpdates.difficulty = updates.difficulty;
-    if (updates.resources !== undefined) dbUpdates.resources = updates.resources as unknown as import("@/integrations/supabase/types").Json;
     if (updates.position_x !== undefined) dbUpdates.position_x = updates.position_x;
     if (updates.position_y !== undefined) dbUpdates.position_y = updates.position_y;
     if (updates.connections !== undefined) dbUpdates.connections = updates.connections;
     if (updates.video_url !== undefined) dbUpdates.video_url = updates.video_url;
+    if (updates.estimated_time !== undefined) dbUpdates.estimated_time = updates.estimated_time;
+    if (updates.sort_order !== undefined) dbUpdates.sort_order = updates.sort_order;
+    if (updates.resources !== undefined) dbUpdates.resources = updates.resources as unknown as Json;
     const { error } = await supabase.from("roadmap_nodes").update(dbUpdates).eq("id", id);
     if (error) throw error;
   }, []);
@@ -160,11 +176,10 @@ export function useRoadmapStore() {
   }, []);
 
   const resetToDefaults = useCallback(async () => {
-    // Delete all and re-seed
-    await supabase.from("roadmap_nodes").delete().neq("id", "___never___");
-    // Reload will happen via realtime
+    if (!roadmapId) return;
+    await supabase.from("roadmap_nodes").delete().eq("roadmap_id", roadmapId);
     window.location.reload();
-  }, []);
+  }, [roadmapId]);
 
   const filteredTopics = topics.filter((t) => {
     const matchesSearch =

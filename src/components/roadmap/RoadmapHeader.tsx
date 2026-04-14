@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Filter, Database, Flame, Trophy } from "lucide-react";
+import { Search, Filter, Flame, Trophy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Difficulty } from "@/data/roadmapData";
@@ -12,11 +12,11 @@ const difficulties: { value: Difficulty | "all"; label: string }[] = [
 ];
 
 function getLevelInfo(completed: number) {
-  if (completed >= 12) return { level: 5, title: "SQL Master", color: "text-warning" };
-  if (completed >= 9) return { level: 4, title: "SQL Expert", color: "text-destructive" };
-  if (completed >= 6) return { level: 3, title: "SQL Developer", color: "text-accent" };
-  if (completed >= 3) return { level: 2, title: "SQL Apprentice", color: "text-primary" };
-  return { level: 1, title: "SQL Beginner", color: "text-muted-foreground" };
+  if (completed >= 12) return { level: 5, title: "Master", color: "text-warning" };
+  if (completed >= 9) return { level: 4, title: "Expert", color: "text-destructive" };
+  if (completed >= 6) return { level: 3, title: "Developer", color: "text-accent" };
+  if (completed >= 3) return { level: 2, title: "Apprentice", color: "text-primary" };
+  return { level: 1, title: "Beginner", color: "text-muted-foreground" };
 }
 
 function AnimatedCounter({ value }: { value: number }) {
@@ -45,6 +45,8 @@ interface RoadmapHeaderProps {
   progress: number;
   completedCount: number;
   totalCount: number;
+  roadmapName?: string;
+  roadmapIcon?: string;
 }
 
 export default function RoadmapHeader({
@@ -55,19 +57,20 @@ export default function RoadmapHeader({
   progress,
   completedCount,
   totalCount,
+  roadmapName = "SQL Roadmap",
+  roadmapIcon = "🗄️",
 }: RoadmapHeaderProps) {
   const levelInfo = getLevelInfo(completedCount);
 
   return (
     <div className="border-b border-border bg-card/80 backdrop-blur-sm px-4 py-3 md:px-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        {/* Left: Title + Progress HUD */}
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15">
-            <Database className="h-5 w-5 text-primary" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-xl">
+            {roadmapIcon}
           </div>
           <div>
-            <h1 className="text-lg font-display text-foreground leading-tight">SQL Roadmap</h1>
+            <h1 className="text-lg font-display text-foreground leading-tight">{roadmapName} Roadmap</h1>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>
                 <AnimatedCounter value={completedCount} />/{totalCount} topics
@@ -80,20 +83,14 @@ export default function RoadmapHeader({
             </div>
           </div>
 
-          {/* XP Progress Bar */}
           <div className="ml-3 flex flex-col gap-1">
             <div className="relative w-28 h-2.5 rounded-full bg-secondary overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 progress-glow transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]"
                 style={{ width: `${progress}%` }}
               />
-              {/* Segments */}
               {[25, 50, 75].map((seg) => (
-                <div
-                  key={seg}
-                  className="absolute top-0 h-full w-px bg-background/40"
-                  style={{ left: `${seg}%` }}
-                />
+                <div key={seg} className="absolute top-0 h-full w-px bg-background/40" style={{ left: `${seg}%` }} />
               ))}
             </div>
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
@@ -103,7 +100,6 @@ export default function RoadmapHeader({
           </div>
         </div>
 
-        {/* Right: Search + Filters */}
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />

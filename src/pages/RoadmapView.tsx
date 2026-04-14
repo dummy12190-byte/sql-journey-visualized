@@ -1,13 +1,18 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useRoadmapStore } from "@/hooks/useRoadmapStore";
+import { useRoadmaps } from "@/hooks/useRoadmaps";
 import RoadmapFlow from "@/components/roadmap/RoadmapFlow";
 import RoadmapHeader from "@/components/roadmap/RoadmapHeader";
-import { Settings } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function Index() {
-  const store = useRoadmapStore();
+export default function RoadmapView() {
+  const { id } = useParams<{ id: string }>();
+  const store = useRoadmapStore(id);
+  const { roadmaps } = useRoadmaps();
+  const roadmap = roadmaps.find((r) => r.id === id);
 
   const highlightedIds = useMemo(() => {
     return new Set(store.filteredTopics.map((t) => t.id));
@@ -26,6 +31,7 @@ export default function Index() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
+      <Navbar />
       <RoadmapHeader
         searchQuery={store.searchQuery}
         onSearchChange={store.setSearchQuery}
@@ -34,6 +40,8 @@ export default function Index() {
         progress={store.progress}
         completedCount={store.completedIds.size}
         totalCount={store.topics.length}
+        roadmapName={roadmap?.name || "Roadmap"}
+        roadmapIcon={roadmap?.icon || "📚"}
       />
 
       <div className="relative flex-1 roadmap-bg">
@@ -44,10 +52,10 @@ export default function Index() {
           highlightedIds={highlightedIds}
         />
 
-        <Link to="/admin" className="absolute bottom-4 right-4 z-10">
+        <Link to="/" className="absolute top-4 left-4 z-10">
           <Button variant="outline" size="sm" className="gap-2 bg-card/90 backdrop-blur-sm border-border hover:border-primary/50 transition-colors">
-            <Settings className="h-4 w-4" />
-            Admin
+            <ArrowLeft className="h-4 w-4" />
+            All Roadmaps
           </Button>
         </Link>
       </div>

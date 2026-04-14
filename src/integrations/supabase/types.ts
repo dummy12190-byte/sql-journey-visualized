@@ -21,10 +21,13 @@ export type Database = {
           created_at: string
           description: string
           difficulty: string
+          estimated_time: number
           id: string
           position_x: number
           position_y: number
           resources: Json
+          roadmap_id: string
+          sort_order: number
           title: string
           updated_at: string
           video_url: string | null
@@ -35,10 +38,13 @@ export type Database = {
           created_at?: string
           description?: string
           difficulty?: string
+          estimated_time?: number
           id: string
           position_x?: number
           position_y?: number
           resources?: Json
+          roadmap_id: string
+          sort_order?: number
           title: string
           updated_at?: string
           video_url?: string | null
@@ -49,13 +55,60 @@ export type Database = {
           created_at?: string
           description?: string
           difficulty?: string
+          estimated_time?: number
           id?: string
           position_x?: number
           position_y?: number
           resources?: Json
+          roadmap_id?: string
+          sort_order?: number
           title?: string
           updated_at?: string
           video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_nodes_roadmap_id_fkey"
+            columns: ["roadmap_id"]
+            isOneToOne: false
+            referencedRelation: "roadmaps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmaps: {
+        Row: {
+          accent_color: string
+          created_at: string
+          description: string
+          estimated_time: number
+          icon: string
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          created_at?: string
+          description?: string
+          estimated_time?: number
+          icon?: string
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          created_at?: string
+          description?: string
+          estimated_time?: number
+          icon?: string
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -65,18 +118,21 @@ export type Database = {
           completed_at: string
           id: string
           node_id: string
+          roadmap_id: string | null
         }
         Insert: {
           browser_id: string
           completed_at?: string
           id?: string
           node_id: string
+          roadmap_id?: string | null
         }
         Update: {
           browser_id?: string
           completed_at?: string
           id?: string
           node_id?: string
+          roadmap_id?: string | null
         }
         Relationships: [
           {
@@ -84,6 +140,13 @@ export type Database = {
             columns: ["node_id"]
             isOneToOne: false
             referencedRelation: "roadmap_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_progress_roadmap_id_fkey"
+            columns: ["roadmap_id"]
+            isOneToOne: false
+            referencedRelation: "roadmaps"
             referencedColumns: ["id"]
           },
         ]

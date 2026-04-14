@@ -11,7 +11,7 @@ interface AdminHeaderProps {
   roadmapName?: string;
 }
 
-export default function AdminHeader({ topics, onAddTopic, onReset }: AdminHeaderProps) {
+export default function AdminHeader({ topics, onAddTopic, onReset, roadmapName }: AdminHeaderProps) {
   const [spinning, setSpinning] = useState(false);
 
   const beginnerCount = topics.filter((t) => t.difficulty === "beginner").length;

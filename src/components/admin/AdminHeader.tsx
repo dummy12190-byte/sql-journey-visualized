@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, RotateCcw, Database } from "lucide-react";
+import { Plus, RotateCcw, Database } from "lucide-react";
 import type { RoadmapNode } from "@/hooks/useRoadmapStore";
 
 interface AdminHeaderProps {

@@ -149,11 +149,22 @@ export function useRoadmapStore(roadmapId?: string) {
   }, [roadmapId]);
 
   const updateTopic = useCallback(async (id: string, updates: Partial<RoadmapNode>) => {
-    const dbUpdates: Record<string, unknown> = {};
-    const fields = ["title", "description", "category", "difficulty", "position_x", "position_y", "connections", "video_url", "estimated_time", "sort_order"] as const;
-    for (const f of fields) {
-      if (updates[f] !== undefined) dbUpdates[f] = updates[f];
-    }
+    const dbUpdates: {
+      title?: string; description?: string; category?: string; difficulty?: string;
+      position_x?: number; position_y?: number; connections?: string[];
+      video_url?: string; estimated_time?: number; sort_order?: number;
+      resources?: Json;
+    } = {};
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.category !== undefined) dbUpdates.category = updates.category;
+    if (updates.difficulty !== undefined) dbUpdates.difficulty = updates.difficulty;
+    if (updates.position_x !== undefined) dbUpdates.position_x = updates.position_x;
+    if (updates.position_y !== undefined) dbUpdates.position_y = updates.position_y;
+    if (updates.connections !== undefined) dbUpdates.connections = updates.connections;
+    if (updates.video_url !== undefined) dbUpdates.video_url = updates.video_url;
+    if (updates.estimated_time !== undefined) dbUpdates.estimated_time = updates.estimated_time;
+    if (updates.sort_order !== undefined) dbUpdates.sort_order = updates.sort_order;
     if (updates.resources !== undefined) dbUpdates.resources = updates.resources as unknown as Json;
     const { error } = await supabase.from("roadmap_nodes").update(dbUpdates).eq("id", id);
     if (error) throw error;

@@ -37,7 +37,7 @@ export default function AdminHeader({ topics, onAddTopic, onReset, roadmapName }
             <div className="flex items-center gap-2.5">
               <div className="w-1 h-6 rounded-full bg-gradient-to-b from-primary to-primary/40" />
               <Database className="h-5 w-5 text-primary" />
-              <h1 className="text-lg font-display text-foreground">Admin Panel</h1>
+              <h1 className="text-lg font-display text-foreground">{roadmapName ? `${roadmapName} Topics` : "Admin Panel"}</h1>
             </div>
           </div>
           <div className="flex gap-2">

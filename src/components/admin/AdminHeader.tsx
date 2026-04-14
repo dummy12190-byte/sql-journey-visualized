@@ -29,11 +29,6 @@ export default function AdminHeader({ topics, onAddTopic, onReset, roadmapName }
       <div className="max-w-6xl mx-auto px-4 py-3 md:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200">
-                <ArrowLeft className="h-4 w-4" /> Back
-              </Button>
-            </Link>
             <div className="flex items-center gap-2.5">
               <div className="w-1 h-6 rounded-full bg-gradient-to-b from-primary to-primary/40" />
               <Database className="h-5 w-5 text-primary" />
